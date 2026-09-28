@@ -234,6 +234,21 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     apiHint:
       "Create an LLM Gateway API key, then use https://api.llmgateway.io/v1 as the OpenAI-compatible base URL.",
   },
+  lyceum: {
+    id: "lyceum",
+    serviceKinds: ["llm"],
+    alias: "lyceum",
+    name: "Lyceum",
+    icon: "router",
+    color: "#4F46E5",
+    textIcon: "LY",
+    passthroughModels: true,
+    website: "https://lyceum.technology",
+    hasFree: true,
+    freeNote: "Includes monthly free credits toward serverless inference usage.",
+    apiHint:
+      "Create a Lyceum API key (lk_…), then use https://api.lyceum.technology/openai/v1 as the OpenAI-compatible base URL.",
+  },
   "llm-kiwi": {
     id: "llm-kiwi",
     serviceKinds: ["llm"],
@@ -295,12 +310,12 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     textIcon: "ONO",
     passthroughModels: true,
     website: "https://onomeo.com",
-    // Free credits come from a daily check-in, not a standing quota: 50,000 on day 1,
-    // rising to 200,000 a day from day 7. Cost per reply varies by model, and unpaid
-    // accounts each get up to 50,000/day on premium models.
+    // Free credits come from a daily check-in, not a standing quota: 20,000 on day 1,
+    // rising to 50,000 a day from day 7. Free models cost no credits; premium models do,
+    // and each unpaid account can spend up to 50,000/day on them.
     hasFree: true,
     freeNote:
-      "Sign in (email, Google or GitHub, no card) and check in daily: 50,000 credits on day 1, up to 200,000 a day from day 7. Cost per reply varies by model; each unpaid account gets up to 50,000/day on premium models. Optional: $5 buys 1,000,000 credits. 12 requests/min per key, 60 requests per 5 hours per account.",
+      "Sign in (email, Google or GitHub, no card) and check in daily: 20,000 credits on day 1, up to 50,000 a day from day 7. 36 free models cost no credits; 12 premium models do, and each unpaid account can spend up to 50,000/day on them. Optional: $5/month buys 3,000,000 credits that never expire (cancel anytime). 12 requests/min per key; free models allow 60 requests per 5 hours per account and 450 per 5 hours site-wide.",
     // onomeo routes to third-party upstreams; some may train on prompts, and each
     // model page on onomeo.com says which.
     apiHint:
@@ -745,6 +760,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/zen",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   "opencode-go": {
     id: "opencode-go",
@@ -755,6 +775,11 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     color: "#6366f1",
     website: "https://opencode.ai/go",
     anonymousFallback: true,
+    // One credential fronts many upstream models (deepseek, glm, qwen, grok,
+    // minimax, ...). A 402 means "this MODEL is not in the plan", not "the
+    // account is out of credit", so it must reach the per-model lockout branch
+    // instead of parking the whole connection (#12242).
+    passthroughModels: true,
   },
   dahl: {
     id: "dahl",
