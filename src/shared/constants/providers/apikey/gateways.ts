@@ -315,7 +315,7 @@ export const APIKEY_PROVIDERS_GATEWAYS = {
     // and each unpaid account can spend up to 50,000/day on them.
     hasFree: true,
     freeNote:
-      "Sign in (email, Google or GitHub, no card) and check in daily: 20,000 credits on day 1, up to 50,000 a day from day 7. 36 free models cost no credits; 12 premium models do, and each unpaid account can spend up to 50,000/day on them. Optional: $5/month buys 3,000,000 credits that never expire (cancel anytime). 12 requests/min per key; free models allow 60 requests per 5 hours per account and 450 per 5 hours site-wide.",
+      "Sign in (email, Google or GitHub, no card) and check in daily: 20,000 credits on day 1, up to 50,000 a day from day 7. 35 free models cost no credits; 12 premium models do, and each unpaid account can spend up to 50,000/day on them. Optional: $5/month buys 3,000,000 credits that never expire (cancel anytime). 12 requests/min per key; free models allow 60 requests per 5 hours per account and 450 per 5 hours site-wide.",
     // onomeo routes to third-party upstreams; some may train on prompts, and each
     // model page on onomeo.com says which.
     apiHint:
