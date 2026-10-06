@@ -47,6 +47,18 @@ function hasNonEmptyString(value: unknown): boolean {
   return typeof value === "string" && value.length > 0;
 }
 
+// A Claude thinking or signature delta is proof the model is working, even
+// when its payload carries no readable text (encrypted reasoning, empty
+// signature envelope). Presence of a non-empty `thinking` or `signature`
+// string on a typed delta object counts as liveness — never as user-visible
+// output. Plain `signature: ""` bootstraps stay excluded: only a non-empty
+// value passes.
+function hasThinkingLiveness(value: Record<string, unknown>): boolean {
+  const deltaType = value.type;
+  if (deltaType !== "thinking_delta" && deltaType !== "signature_delta") return false;
+  return hasNonEmptyString(value.thinking) || hasNonEmptyString(value.signature);
+}
+
 function hasUsefulValue(value: unknown): boolean {
   if (hasNonEmptyString(value)) return true;
   if (Array.isArray(value)) return value.some(hasUsefulValue);
@@ -59,6 +71,8 @@ function hasUsefulValue(value: unknown): boolean {
   // tripping the #8649 empty-content guard.
   // This shape is specific to Responses streams; chat-completion frames do not produce it.
   if (value.type === "compaction" && hasNonEmptyString(value.encrypted_content)) return true;
+
+  if (hasThinkingLiveness(value)) return true;
 
   for (const key of [
     "content",
@@ -516,12 +530,18 @@ export function prependBufferedChunks(
   });
 }
 
+class StreamReadinessReadTimeout extends Error {
+  constructor() {
+    super("STREAM_READINESS_TIMEOUT");
+  }
+}
+
 function readWithTimeout(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   timeoutMs: number
 ): Promise<ReadableStreamReadResult<Uint8Array>> {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("STREAM_READINESS_TIMEOUT")), timeoutMs);
+    const timeout = setTimeout(() => reject(new StreamReadinessReadTimeout()), timeoutMs);
     reader.read().then(
       (value) => {
         clearTimeout(timeout);
@@ -625,7 +645,40 @@ export async function ensureStreamReadiness(
       const readStart = Date.now();
       try {
         readResult = await readWithTimeout(reader, remainingMs);
-      } catch {
+      } catch (error) {
+        // A source stream that errors before its first non-ping event (e.g. an
+        // executor watchdog giving up on a stalled upstream) must say so instead of
+        // claiming a readiness timeout. The code/type/status stay on the timeout class on
+        // purpose: STREAM_EARLY_EOF buys a same-connection retry (#3758), which would
+        // double the wait on a stream the executor already gave up on before the combo
+        // can fall back.
+        if (!(error instanceof StreamReadinessReadTimeout)) {
+          const classificationReason = "Stream failed before producing a non-ping SSE event";
+          const rawMessage = error instanceof Error ? error.message : String(error);
+          const upstreamDiagnostic = sanitizeErrorMessage(rawMessage).trim() || undefined;
+          const reason = upstreamDiagnostic
+            ? `${classificationReason}: ${upstreamDiagnostic}`
+            : classificationReason;
+          options.log?.warn?.(
+            "STREAM",
+            `${reason} (${options.provider || "provider"}/${options.model || "unknown"})`
+          );
+          return {
+            ok: false,
+            reason,
+            classificationReason,
+            ...(upstreamDiagnostic ? { upstreamDiagnostic } : {}),
+            code: "STREAM_READINESS_TIMEOUT",
+            type: "stream_timeout",
+            response: createErrorResponse(
+              HTTP_STATUS.GATEWAY_TIMEOUT,
+              classificationReason,
+              "STREAM_READINESS_TIMEOUT",
+              "stream_timeout",
+              upstreamDiagnostic
+            ),
+          };
+        }
         const reason = timeoutReason();
         options.log?.warn?.(
           "STREAM",
