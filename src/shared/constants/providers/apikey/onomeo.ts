@@ -13,12 +13,12 @@ export const onomeoGateway = {
     textIcon: "ONO",
     passthroughModels: true,
     website: "https://onomeo.com",
-    // Free credits come from a daily check-in, not a standing quota: 20,000 on day 1,
-    // rising to 50,000 a day from day 7. Free models cost no credits; premium models do,
-    // and each unpaid account can spend up to 50,000/day on them.
+    // Since 2026-10-06 there are no site credits or daily check-in: about 30 free models
+    // are metered by calls (per account and per key, inside a site-wide pool shared by all
+    // accounts); large models are paid from a USD balance.
     hasFree: true,
     freeNote:
-      "Sign in (email, Google or GitHub, no card) and check in daily: 20,000 credits on day 1, up to 50,000 a day from day 7. 35 free models cost no credits; 12 premium models do, and each unpaid account can spend up to 50,000/day on them. Optional: $5/month buys 3,000,000 credits that never expire (cancel anytime). 12 requests/min per key; free models allow 60 requests per 5 hours per account and 450 per 5 hours site-wide.",
+      "Sign in (email code, Google or GitHub, no card). About 30 free models are metered by calls: 30 calls per 5 hours per account and 12 requests/min per key, within a site-wide pool shared by all accounts. Claude, GPT and other large models are paid from a USD balance at per-model prices; during the beta an account can spend at most $0.50/day on them. Optional top-up from $5 (balance never expires, no auto-renewal) raises the free-model limit to 90 calls per 5 hours for 35 days.",
     // onomeo routes to third-party upstreams; some may train on prompts, and each
     // model page on onomeo.com says which.
     apiHint:

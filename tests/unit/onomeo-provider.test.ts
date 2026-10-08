@@ -44,14 +44,16 @@ test("onomeo is listed as an aggregator", () => {
   assert.equal(AGGREGATOR_PROVIDER_IDS.has("onomeo"), true);
 });
 
-test("onomeo's free note states the check-in allowance and the rate limits", () => {
-  // The allowance is small and depends on a daily check-in; the note says so
-  // instead of implying a standing free quota.
+test("onomeo's free note states the call-metered allowance and the rate limits", () => {
+  // #14297: onomeo dropped its site credits and daily check-in on 2026-10-06.
+  // Free models are now metered by calls; the note states those limits and
+  // must not keep describing the retired check-in or imply a standing quota.
   assert.equal(APIKEY_PROVIDERS.onomeo?.hasFree, true);
   const note = String(APIKEY_PROVIDERS.onomeo?.freeNote ?? "");
-  assert.match(note, /check in daily/i);
+  assert.match(note, /30 calls per 5 hours per account/);
   assert.match(note, /12 requests\/min per key/);
-  assert.match(note, /60 requests per 5 hours per account/);
+  assert.match(note, /site-wide pool/i);
+  assert.doesNotMatch(note, /check in|check-in|credits/i);
   assert.doesNotMatch(note, /unlimited/i);
 });
 
